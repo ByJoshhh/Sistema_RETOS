@@ -65,30 +65,47 @@ class _RegistroImagenesAcarreoScreenState
     setState(() => _isSubmitting = true);
 
     try {
-      // --- 2. LEER LA MEMORIA DEL CELULAR ---
+      // --- NUEVO: LEER EL TOKEN DE LA MEMORIA ---
       final prefs = await SharedPreferences.getInstance();
-      final int idChecadorReal = prefs.getInt('id_usuario') ?? 1;
-      final int idEmpresaReal = prefs.getInt('id_empresa') ?? 1;
+      final String? tokenSeguridad = prefs.getString('token_seguridad');
+
+      if (tokenSeguridad == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error: Sesión no válida. Vuelva a iniciar sesión.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() => _isSubmitting = false);
+        return;
+      }
 
       // CONEXIÓN A LA NUBE EN RENDER
       final String ipServidor = 'https://api-retos.onrender.com';
       final url = Uri.parse('$ipServidor/api/acarreos');
 
-      // --- 3. ENVIAR LOS DATOS REALES A NODE.JS ---
+      // --- MODIFICADO: Solo enviamos datos de la operación.
+      // Ya NO enviamos id_empresa ni id_checador_obra. ---
       final bodyData = json.encode({
         "folio_suministro": widget.datosViaje['folio_suministro'],
-        "id_checador_obra": idChecadorReal,
         "distancia_km": widget.distanciaKm,
         "cantidad_m3_recibida": widget.cantidadM3,
-        "id_empresa": idEmpresaReal,
       });
 
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization':
+              'Bearer $tokenSeguridad', // <-- NUEVO: Enviamos el token al guardia
+        },
         body: bodyData,
       );
+
       final data = json.decode(response.body);
+
+      if (!mounted) return;
 
       if (response.statusCode == 200 && data['exito'] == true) {
         Navigator.pushReplacement(
@@ -105,12 +122,13 @@ class _RegistroImagenesAcarreoScreenState
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${data['mensaje']}'),
+            content: Text('Error: ${data['mensaje'] ?? 'No se pudo guardar'}'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error de conexión con el servidor'),
@@ -118,7 +136,9 @@ class _RegistroImagenesAcarreoScreenState
         ),
       );
     } finally {
-      setState(() => _isSubmitting = false);
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 

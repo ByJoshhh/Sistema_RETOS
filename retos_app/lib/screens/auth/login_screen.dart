@@ -45,6 +45,8 @@ class _LoginScreenState extends State<LoginScreen> {
         final usuario = data['usuario'];
         final String rol = usuario['rol'];
         final String nombre = usuario['nombre_completo'];
+        // --- NUEVO: Capturamos el token que viene del backend ---
+        final String tokenSeguridad = data['token'];
 
         // --- 2. LA MAGIA DEL SAAS: GUARDAR DATOS EN MEMORIA ---
         final prefs = await SharedPreferences.getInstance();
@@ -52,11 +54,14 @@ class _LoginScreenState extends State<LoginScreen> {
         await prefs.setInt('id_empresa', usuario['id_empresa']);
         await prefs.setString('nombre_completo', usuario['nombre_completo']);
         await prefs.setString('rol', usuario['rol']);
+        // --- NUEVO: Guardamos el gafete (token) para usarlo en otras pantallas ---
+        await prefs.setString('token_seguridad', tokenSeguridad);
         // ------------------------------------------------------
 
         _mostrarMensaje('¡Bienvenido $nombre!', Colors.green);
 
         // Ya podemos viajar al menú tranquilamente
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -73,9 +78,11 @@ class _LoginScreenState extends State<LoginScreen> {
         Colors.red,
       );
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
