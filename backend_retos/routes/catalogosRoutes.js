@@ -1,10 +1,14 @@
+// routes/catalogosRoutes.js
 const express = require('express');
 const router = express.Router();
 const catalogosController = require('../controllers/catalogosController');
-const verificarToken = require('../middleware/authMiddleware'); // <-- Importamos al guardia de seguridad
+const verificarToken = require('../middleware/authMiddleware'); // El guardia de seguridad
 
-// Protegemos todas las rutas del catálogo
+// Rutas de LECTURA (GET)
 router.get('/catalogos', verificarToken, catalogosController.obtenerCatalogos);
-router.get('/unidades', verificarToken, catalogosController.obtenerUnidades); // <-- La nueva ruta que consume Flutter
+router.get('/unidades', verificarToken, catalogosController.obtenerUnidades);
+
+// Rutas de ESCRITURA (POST)
+router.post('/unidades', verificarToken, catalogosController.registrarUnidad);
 
 module.exports = router;

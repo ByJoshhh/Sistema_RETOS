@@ -1,7 +1,9 @@
+// controllers/catalogosController.js
 const dbPool = require('../config/database');
 
+// --- GET: Obtener todos los catálogos para los Dropdowns (Listas desplegables) ---
 const obtenerCatalogos = async (req, res) => {
-    // Seguridad SaaS: Extraemos del token, ya no confiamos en req.query
+    // Seguridad SaaS: Extraemos del token
     const id_empresa = req.usuarioSeguro.id_empresa;
 
     try {
@@ -22,12 +24,11 @@ const obtenerCatalogos = async (req, res) => {
     }
 };
 
-// --- NUEVA FUNCIÓN PARA LA TABLA WEB ---
+// --- GET: Obtener datos solo para la tabla web de unidades ---
 const obtenerUnidades = async (req, res) => {
     const id_empresa = req.usuarioSeguro.id_empresa;
 
     try {
-        // Adaptado a tu BD: Solo pedimos id_unidad, placas_o_num y capacidad_m3
         const [unidades] = await dbPool.query(`
             SELECT 
                 id_unidad, 
@@ -48,4 +49,36 @@ const obtenerUnidades = async (req, res) => {
     }
 };
 
-module.exports = { obtenerCatalogos, obtenerUnidades };
+// --- POST: Insertar un nuevo camión desde el Panel de Administración ---
+const registrarUnidad = async (req, res) => {
+    // 1. Recibimos los datos del formulario de Flutter
+    const { placa, capacidad_m3 } = req.body;
+    
+    // 2. Identificamos a qué empresa pertenece el usuario
+    const id_empresa = req.usuarioSeguro.id_empresa;
+
+    // Validación de seguridad básica
+    if (!placa || capacidad_m3 === undefined || capacidad_m3 === null) {
+        return res.status(400).json({ exito: false, mensaje: 'Placa y capacidad son obligatorios' });
+    }
+
+    try {
+        // 3. Insertamos en la BD. Por defecto nacen con estatus_activo = 1
+        const [resultado] = await dbPool.query(`
+            INSERT INTO cat_unidades (id_empresa, placas_o_num, capacidad_m3, estatus_activo) 
+            VALUES (?, ?, ?, 1)
+        `, [id_empresa, placa.toUpperCase(), capacidad_m3]);
+
+        res.json({
+            exito: true,
+            mensaje: '¡Unidad registrada correctamente!',
+            id_unidad: resultado.insertId
+        });
+    } catch (error) {
+        console.error('Error al registrar unidad:', error);
+        res.status(500).json({ exito: false, mensaje: 'Error interno del servidor al guardar la unidad' });
+    }
+};
+
+// Exportamos las tres funciones
+module.exports = { obtenerCatalogos, obtenerUnidades, registrarUnidad };

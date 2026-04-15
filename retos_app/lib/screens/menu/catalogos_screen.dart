@@ -1,7 +1,9 @@
+// catalogos_screen.dart
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dialogo_nueva_unidad.dart'; // <-- 1. IMPORTAMOS EL NUEVO ARCHIVO
 
 class CatalogosScreen extends StatelessWidget {
   const CatalogosScreen({super.key});
@@ -23,7 +25,6 @@ class CatalogosScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // --- BARRA DE PESTAÑAS (TABS) ---
           Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -55,7 +56,6 @@ class CatalogosScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // --- CONTENIDO DE CADA PESTAÑA ---
           const Expanded(
             child: TabBarView(
               children: [
@@ -87,9 +87,6 @@ class CatalogosScreen extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// PESTAÑA 1: CATÁLOGO DE UNIDADES (CAMIONES)
-// =====================================================================
 class _TabUnidades extends StatefulWidget {
   const _TabUnidades();
 
@@ -100,7 +97,6 @@ class _TabUnidades extends StatefulWidget {
 class _TabUnidadesState extends State<_TabUnidades> {
   List<dynamic> _unidades = [];
   bool _isLoading = true;
-  String _errorMessage = '';
 
   @override
   void initState() {
@@ -115,11 +111,8 @@ class _TabUnidadesState extends State<_TabUnidades> {
 
       if (token == null) return;
 
-      // ⚠️ CAMBIO: Apuntamos a tu compu local para que funcione de inmediato.
-      // Cuando subas a Render, comenta esta línea y descomenta la de abajo.
-      //final url = Uri.parse('http://localhost:3000/api/unidades');
+      //final url = Uri.parse('http://localhost:3000/api/unidades'); // Modo local
       final url = Uri.parse('https://api-retos.onrender.com/api/unidades');
-      // final url = Uri.parse('https://api-retos.onrender.com/api/unidades');
 
       final response = await http.get(
         url,
@@ -128,12 +121,11 @@ class _TabUnidadesState extends State<_TabUnidades> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (mounted) {
+        if (mounted)
           setState(() {
             _unidades = data['datos'] ?? [];
             _isLoading = false;
           });
-        }
       } else {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -188,11 +180,13 @@ class _TabUnidadesState extends State<_TabUnidades> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Abriendo formulario de registro...'),
-                    ),
-                  );
+                  // <-- 2. LLAMAMOS AL ARCHIVO EXTERNO SIN EL GUION BAJO -->
+                  showDialog(
+                    context: context,
+                    builder: (context) => const DialogoNuevaUnidad(),
+                  ).then((creado) {
+                    if (creado == true) _cargarUnidades();
+                  });
                 },
               ),
             ],
@@ -237,7 +231,6 @@ class _TabUnidadesState extends State<_TabUnidades> {
                             ),
                           ),
                         ),
-                        // ⚠️ ELIMINAMOS LA COLUMNA DESCRIPCIÓN AQUÍ
                         DataColumn(
                           label: Text(
                             'Capacidad (m³)',
@@ -269,7 +262,6 @@ class _TabUnidadesState extends State<_TabUnidades> {
                                 ),
                               ),
                             ),
-                            // ⚠️ ELIMINAMOS LA CELDA DESCRIPCIÓN AQUÍ
                             DataCell(
                               Text(
                                 '${u['capacidad_m3'] ?? 0} m³',

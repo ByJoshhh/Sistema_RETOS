@@ -12,7 +12,7 @@ const dbPool = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
     ssl: {
-        rejectUnauthorized: false // <-- ¡AQUÍ ESTÁ EL CAMBIO CLAVE!
+        rejectUnauthorized: false
     }
 });
 
