@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class ConsultaScreen extends StatefulWidget {
   const ConsultaScreen({super.key});
@@ -21,7 +22,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
     _cargarHistorial();
   }
 
-  // --- GET: Traer todos los viajes de Node.js ---
   // --- GET: Traer todos los viajes de Node.js protegidos con Token ---
   Future<void> _cargarHistorial() async {
     setState(() {
@@ -30,7 +30,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
     });
 
     try {
-      // 1. Buscamos el Gafete (Token) en la memoria del celular
       final prefs = await SharedPreferences.getInstance();
       final String? tokenSeguridad = prefs.getString('token_seguridad');
 
@@ -43,15 +42,14 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
         return;
       }
 
-      final String ipServidor = 'https://api-retos.onrender.com';
-      final url = Uri.parse('$ipServidor/api/suministros');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/suministros');
 
-      // 2. Tocamos la puerta enviando el Token en los Headers
       final response = await http.get(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $tokenSeguridad', // <-- El pase VIP
+          'Authorization': 'Bearer $tokenSeguridad',
         },
       );
 
@@ -76,7 +74,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
     }
   }
 
-  // Función auxiliar a prueba de fallos para formatear la fecha
   String _formatearFecha(dynamic fechaIso) {
     if (fechaIso == null) return 'Fecha no disponible';
     try {
@@ -105,7 +102,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      // --- REFRESH INDICATOR: Deslizar para actualizar ---
       body: RefreshIndicator(
         onRefresh: _cargarHistorial,
         color: const Color(0xFF4A5D6A),
@@ -181,11 +177,9 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
       );
     }
 
-    // --- LISTA DE TARJETAS ---
     return ListView.builder(
       padding: const EdgeInsets.all(15.0),
-      physics:
-          const AlwaysScrollableScrollPhysics(), // Necesario para que funcione el RefreshIndicator aunque haya pocos items
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: _historial.length,
       itemBuilder: (context, index) {
         final viaje = _historial[index];
@@ -209,7 +203,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabecera de la Tarjeta (Folio y Estatus)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -251,8 +244,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
                   ],
                 ),
                 const Divider(height: 25, thickness: 1, color: Colors.black12),
-
-                // Cuerpo de la Tarjeta (Datos)
                 Row(
                   children: [
                     const Icon(
@@ -307,8 +298,6 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
                   ],
                 ),
                 const SizedBox(height: 15),
-
-                // Footer de la Tarjeta (Unidad y Material en gris clarito)
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(

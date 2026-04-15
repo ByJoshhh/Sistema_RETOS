@@ -65,32 +65,49 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // --- 2. LEEMOS LA MEMORIA DEL CELULAR ---
+      // --- 1. LEEMOS LA MEMORIA DEL CELULAR Y EL TOKEN ---
       final prefs = await SharedPreferences.getInstance();
       final int idChecadorReal = prefs.getInt('id_usuario') ?? 1;
       final int idEmpresaReal = prefs.getInt('id_empresa') ?? 1;
+      final String? token = prefs.getString(
+        'token_seguridad',
+      ); // <-- EL GAFETE VIP
 
-      final String ipServidor = 'https://api-retos.onrender.com';
-      final url = Uri.parse('$ipServidor/api/suministros');
+      if (token == null) {
+        _mostrarAlerta('Sesión expirada. Vuelve a iniciar sesión.', Colors.red);
+        setState(() => _isSubmitting = false);
+        return;
+      }
 
-      // --- 3. MANDAMOS LOS IDs REALES AL BACKEND ---
+      // --- 2. APUNTAMOS A LA URL CORRECTA (Local o Render) ---
+      final String baseUrl = kIsWeb
+          ? 'http://localhost:3000'
+          : 'https://api-retos.onrender.com';
+      final url = Uri.parse('$baseUrl/api/suministros');
+
+      // --- 3. EMPAQUETAMOS LOS DATOS ---
       final bodyData = json.encode({
-        "id_checador": idChecadorReal, // ¡Adiós dato quemado!
+        "id_checador": idChecadorReal,
         "id_banco": widget.idBanco,
         "id_material": widget.idMaterial,
         "id_destino": widget.idDestino,
         "id_unidad": widget.idUnidad,
         "cantidad_m3": widget.cantidadM3,
-        "id_empresa": idEmpresaReal, // ¡Adiós dato quemado!
+        "id_empresa": idEmpresaReal,
         "id_residente": widget.idResidente,
         "id_sindicato": widget.idSindicato,
       });
 
+      // --- 4. MANDAMOS LA PETICIÓN CON EL TOKEN ---
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // <-- ¡AQUÍ ESTÁ LA MAGIA!
+        },
         body: bodyData,
       );
+
       final data = json.decode(response.body);
 
       if (response.statusCode == 200 && data['exito'] == true) {
@@ -98,11 +115,14 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
           context,
           MaterialPageRoute(
             builder: (context) =>
-                RegistroExitosoScreen(folio: data['folio_qr']),
+                RegistroExitosoScreen(folio: data['folio_qr'] ?? 'SIN-FOLIO'),
           ),
         );
       } else {
-        _mostrarAlerta('Error al guardar el viaje', Colors.red);
+        _mostrarAlerta(
+          data['mensaje'] ?? 'Error al guardar el viaje',
+          Colors.red,
+        );
       }
     } catch (e) {
       _mostrarAlerta('Error de conexión con el servidor', Colors.red);

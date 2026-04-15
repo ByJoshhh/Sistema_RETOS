@@ -1,9 +1,9 @@
-// catalogos_screen.dart
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dialogo_nueva_unidad.dart'; // <-- 1. IMPORTAMOS EL NUEVO ARCHIVO
+import 'dialogo_nueva_unidad.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class CatalogosScreen extends StatelessWidget {
   const CatalogosScreen({super.key});
@@ -111,8 +111,8 @@ class _TabUnidadesState extends State<_TabUnidades> {
 
       if (token == null) return;
 
-      //final url = Uri.parse('http://localhost:3000/api/unidades'); // Modo local
-      final url = Uri.parse('https://api-retos.onrender.com/api/unidades');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/unidades');
 
       final response = await http.get(
         url,
@@ -121,11 +121,12 @@ class _TabUnidadesState extends State<_TabUnidades> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (mounted)
+        if (mounted) {
           setState(() {
             _unidades = data['datos'] ?? [];
             _isLoading = false;
           });
+        }
       } else {
         if (mounted) setState(() => _isLoading = false);
       }
@@ -180,7 +181,6 @@ class _TabUnidadesState extends State<_TabUnidades> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  // <-- 2. LLAMAMOS AL ARCHIVO EXTERNO SIN EL GUION BAJO -->
                   showDialog(
                     context: context,
                     builder: (context) => const DialogoNuevaUnidad(),

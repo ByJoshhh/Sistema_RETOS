@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart'; // <-- 1. Importamos la herramienta de memoria
+import 'package:shared_preferences/shared_preferences.dart';
 import '../menu/main_menu_screen.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -27,8 +28,8 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final String ipServidor = 'https://api-retos.onrender.com';
-      final url = Uri.parse('$ipServidor/api/login');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/login');
 
       final response = await http.post(
         url,
@@ -45,22 +46,17 @@ class _LoginScreenState extends State<LoginScreen> {
         final usuario = data['usuario'];
         final String rol = usuario['rol'];
         final String nombre = usuario['nombre_completo'];
-        // --- NUEVO: Capturamos el token que viene del backend ---
         final String tokenSeguridad = data['token'];
 
-        // --- 2. LA MAGIA DEL SAAS: GUARDAR DATOS EN MEMORIA ---
         final prefs = await SharedPreferences.getInstance();
         await prefs.setInt('id_usuario', usuario['id_usuario']);
         await prefs.setInt('id_empresa', usuario['id_empresa']);
         await prefs.setString('nombre_completo', usuario['nombre_completo']);
         await prefs.setString('rol', usuario['rol']);
-        // --- NUEVO: Guardamos el gafete (token) para usarlo en otras pantallas ---
         await prefs.setString('token_seguridad', tokenSeguridad);
-        // ------------------------------------------------------
 
         _mostrarMensaje('¡Bienvenido $nombre!', Colors.green);
 
-        // Ya podemos viajar al menú tranquilamente
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
@@ -94,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: color,
-        behavior: SnackBarBehavior.floating, // Alerta flotante moderna
+        behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
@@ -103,16 +99,14 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Fondo ligerísimamente gris
+      backgroundColor: Colors.grey[100],
       body: SafeArea(
         child: Center(
-          // Centramos todo vertical y horizontalmente
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: 25.0,
               vertical: 20.0,
             ),
-            // --- ANIMACIÓN DE ENTRADA SUAVE ---
             child: TweenAnimationBuilder(
               tween: Tween<double>(begin: 0, end: 1),
               duration: const Duration(milliseconds: 800),
@@ -121,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 return Opacity(
                   opacity: value,
                   child: Transform.translate(
-                    offset: Offset(0, 40 * (1 - value)), // Sube suavemente
+                    offset: Offset(0, 40 * (1 - value)),
                     child: child,
                   ),
                 );
@@ -129,7 +123,6 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // --- LOGO Y TÍTULO ---
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -151,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
                   const Text(
-                    'RETOS',
+                    'SyC.O.R.E.',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
@@ -171,7 +164,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  // --- TARJETA DE LOGIN ---
                   Container(
                     padding: const EdgeInsets.all(30),
                     decoration: BoxDecoration(
@@ -198,8 +190,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 30),
-
-                        // --- INPUT USUARIO ---
                         TextField(
                           controller: _usernameController,
                           decoration: InputDecoration(
@@ -231,8 +221,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-
-                        // --- INPUT CONTRASEÑA ---
                         TextField(
                           controller: _passwordController,
                           obscureText: true,
@@ -265,8 +253,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 15),
-
-                        // --- OLVIDÓ CONTRASEÑA ---
                         Align(
                           alignment: Alignment.centerRight,
                           child: Text(
@@ -279,8 +265,6 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 35),
-
-                        // --- BOTÓN ENTRAR ---
                         SizedBox(
                           width: double.infinity,
                           height: 55,
@@ -317,8 +301,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 40),
-
-                  // --- FOOTER ---
                   const Text(
                     '© 2026 Gybsa Construcciones. Todos los derechos reservados',
                     style: TextStyle(fontSize: 10, color: Colors.grey),

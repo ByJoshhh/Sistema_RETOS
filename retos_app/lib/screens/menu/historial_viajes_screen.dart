@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class HistorialViajesScreen extends StatefulWidget {
   const HistorialViajesScreen({super.key});
@@ -34,8 +35,8 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
         return;
       }
 
-      final String ipServidor = 'https://api-retos.onrender.com';
-      final url = Uri.parse('$ipServidor/api/suministros');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/suministros');
 
       final response = await http.get(
         url,
@@ -133,15 +134,13 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
         ),
         const SizedBox(height: 20),
 
-        // --- AQUÍ EMPIEZA LA MAGIA RESPONSIVA ---
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Si el ancho disponible es menor a 800 pixeles (Celulares y Tablets pequeñas)
               if (constraints.maxWidth < 800) {
-                return _buildListaMovil(); // Mostramos Tarjetas
+                return _buildListaMovil();
               } else {
-                return _buildTablaWeb(); // Mostramos la Tabla de Escritorio
+                return _buildTablaWeb();
               }
             },
           ),
@@ -150,9 +149,6 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
     );
   }
 
-  // ====================================================================
-  // VISTA 1: TARJETAS COMPACTAS PARA CELULAR
-  // ====================================================================
   Widget _buildListaMovil() {
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
@@ -174,7 +170,6 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Cabecera de la tarjeta: Folio y Estatus
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -211,7 +206,6 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
                   ],
                 ),
                 const Divider(height: 20),
-                // Cuerpo de la tarjeta: Detalles compactos
                 _InfoFilaMovil(
                   icono: Icons.calendar_today,
                   texto: _formatearFecha(viaje['fecha_hora'] ?? ''),
@@ -242,7 +236,6 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
     );
   }
 
-  // Pequeño widget auxiliar para las filas de las tarjetas móviles
   Widget _InfoFilaMovil({
     required IconData icono,
     required String texto,
@@ -268,9 +261,6 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
     );
   }
 
-  // ====================================================================
-  // VISTA 2: TABLA ORIGINAL PARA COMPUTADORA
-  // ====================================================================
   Widget _buildTablaWeb() {
     return Container(
       width: double.infinity,
