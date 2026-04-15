@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'registro_imagenes_screen.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class SuministroScreen extends StatefulWidget {
   const SuministroScreen({super.key});
@@ -59,18 +59,14 @@ class _SuministroScreenState extends State<SuministroScreen> {
         return;
       }
 
-      // URL de producción (Render) o Local
-      final String baseUrl = kIsWeb
-          ? 'http://localhost:3000'
-          : 'https://api-retos.onrender.com';
-
-      final url = Uri.parse('$baseUrl/api/catalogos');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/catalogos');
 
       final response = await http.get(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // <-- El pase VIP
+          'Authorization': 'Bearer $token',
         },
       );
 
@@ -161,15 +157,10 @@ class _SuministroScreenState extends State<SuministroScreen> {
               padding: const EdgeInsets.all(20.0),
               child: Column(
                 children: [
-                  // --- INFO DEL CHECADOR ---
                   _buildHeaderCard(),
                   const SizedBox(height: 25),
-
-                  // --- FORMULARIO ---
                   _buildFormCard(),
                   const SizedBox(height: 30),
-
-                  // --- BOTÓN CONTINUAR ---
                   _buildSubmitButton(),
                 ],
               ),

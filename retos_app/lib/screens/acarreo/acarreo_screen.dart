@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart'; // <-- 1. Importamos la memoria para leer el token
+import 'package:shared_preferences/shared_preferences.dart';
 import 'recepcion_formulario_screen.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class AcarreoScreen extends StatefulWidget {
   const AcarreoScreen({super.key});
@@ -31,7 +32,6 @@ class _AcarreoScreenState extends State<AcarreoScreen> {
     });
 
     try {
-      // --- NUEVO: LEER EL TOKEN DE LA MEMORIA ---
       final prefs = await SharedPreferences.getInstance();
       final String? tokenSeguridad = prefs.getString('token_seguridad');
 
@@ -46,16 +46,14 @@ class _AcarreoScreenState extends State<AcarreoScreen> {
         return;
       }
 
-      final String ipServidor = 'https://api-retos.onrender.com';
-      final url = Uri.parse('$ipServidor/api/suministros/$folioBuscado');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/suministros/$folioBuscado');
 
-      // --- MODIFICADO: Agregamos los headers con el token de seguridad ---
       final response = await http.get(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization':
-              'Bearer $tokenSeguridad', // <-- El guardia lo revisará
+          'Authorization': 'Bearer $tokenSeguridad',
         },
       );
 
@@ -69,7 +67,6 @@ class _AcarreoScreenState extends State<AcarreoScreen> {
 
         if (!mounted) return;
 
-        // VIAJAMOS PASANDO TODO EL MAPA DE DATOS
         Navigator.push(
           context,
           MaterialPageRoute(

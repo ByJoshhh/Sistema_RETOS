@@ -134,6 +134,7 @@ class _HistorialViajesScreenState extends State<HistorialViajesScreen> {
         ),
         const SizedBox(height: 20),
 
+        // --- AQUÍ EMPIEZA LA MAGIA RESPONSIVA ---
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {

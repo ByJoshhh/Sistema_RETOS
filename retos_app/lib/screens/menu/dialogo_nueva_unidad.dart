@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class DialogoNuevaUnidad extends StatefulWidget {
   const DialogoNuevaUnidad({super.key});
@@ -15,9 +16,7 @@ class _DialogoNuevaUnidadState extends State<DialogoNuevaUnidad> {
   final TextEditingController _capacidadController = TextEditingController();
   bool _isLoading = false;
 
-  // --- FUNCIÓN REAL PARA GUARDAR EN EL BACKEND ---
   void _guardarUnidad() async {
-    // Validación básica
     if (_placaController.text.isEmpty || _capacidadController.text.isEmpty) {
       _mostrarSnack('Por favor llena todos los campos', Colors.orange);
       return;
@@ -26,7 +25,6 @@ class _DialogoNuevaUnidadState extends State<DialogoNuevaUnidad> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Obtenemos el token de la memoria
       final prefs = await SharedPreferences.getInstance();
       final String? token = prefs.getString('token_seguridad');
 
@@ -35,10 +33,9 @@ class _DialogoNuevaUnidadState extends State<DialogoNuevaUnidad> {
         return;
       }
 
-      // 2. URL de tu servidor local (Node.js)
-      final url = Uri.parse('http://localhost:3000/api/unidades');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/unidades');
 
-      // 3. Petición POST
       final response = await http.post(
         url,
         headers: {
@@ -55,7 +52,6 @@ class _DialogoNuevaUnidadState extends State<DialogoNuevaUnidad> {
 
       if (response.statusCode == 200 && data['exito'] == true) {
         if (mounted) {
-          // ÉXITO: Cerramos devolviendo 'true' para que la tabla se refresque
           Navigator.pop(context, true);
           _mostrarSnack(data['mensaje'], Colors.green);
         }

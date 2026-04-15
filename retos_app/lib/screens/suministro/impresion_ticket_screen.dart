@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class ImpresionTicketScreen extends StatefulWidget {
   const ImpresionTicketScreen({super.key});
@@ -13,9 +14,8 @@ class ImpresionTicketScreen extends StatefulWidget {
 class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
   final TextEditingController _folioController = TextEditingController();
   bool _isLoading = false;
-  String? _ticketEncontrado; // Guardará el folio si la base de datos lo aprueba
+  String? _ticketEncontrado;
 
-  // --- BÚSQUEDA REAL EN MYSQL ---
   Future<void> _buscarTicket() async {
     final folioBuscado = _folioController.text.trim().toUpperCase();
 
@@ -26,25 +26,21 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
 
     setState(() {
       _isLoading = true;
-      _ticketEncontrado = null; // Ocultamos el ticket anterior si existía
+      _ticketEncontrado = null;
     });
 
     try {
-      final String ipServidor = 'https://api-retos.onrender.com';
-      // Construimos la URL con el folio que escribió el usuario
-      final url = Uri.parse('$ipServidor/api/suministros/$folioBuscado');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/suministros/$folioBuscado');
 
       final response = await http.get(url);
       final data = json.decode(response.body);
 
       if (response.statusCode == 200 && data['exito'] == true) {
-        // ¡ÉXITO! El servidor confirmó que el folio existe
         setState(() {
-          // Extraemos el folio directamente del paquete "viaje" que manda Node.js
           _ticketEncontrado = data['viaje']['folio_suministro'];
         });
       } else {
-        // ERROR: El folio no existe en MySQL o está mal escrito
         _mostrarAlerta(data['mensaje'] ?? 'El folio no existe', Colors.red);
       }
     } catch (e) {
@@ -94,7 +90,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // --- BARRA DE BÚSQUEDA ---
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -154,12 +149,10 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
                               ),
                             ),
                           ),
-                          onSubmitted: (_) =>
-                              _buscarTicket(), // Buscar al dar "Enter" en el teclado
+                          onSubmitted: (_) => _buscarTicket(),
                         ),
                       ),
                       const SizedBox(width: 15),
-                      // Botón Buscar Cuadrado
                       InkWell(
                         onTap: _isLoading ? null : _buscarTicket,
                         borderRadius: BorderRadius.circular(15),
@@ -196,7 +189,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
 
             const SizedBox(height: 30),
 
-            // --- ANIMACIÓN PARA MOSTRAR EL TICKET ---
             AnimatedSize(
               duration: const Duration(milliseconds: 500),
               curve: Curves.easeInOutCubic,
@@ -210,7 +202,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
     );
   }
 
-  // --- DISEÑO DEL TICKET DIGITAL ---
   Widget _buildTicketCard(String folio) {
     return TweenAnimationBuilder(
       tween: Tween<double>(begin: 0, end: 1),
@@ -237,7 +228,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
             ),
             child: Column(
               children: [
-                // Cabecera del Ticket
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   decoration: const BoxDecoration(
@@ -259,7 +249,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
                   ),
                 ),
 
-                // Cuerpo del Ticket (QR y Folio)
                 Padding(
                   padding: const EdgeInsets.all(25.0),
                   child: Column(
@@ -286,7 +275,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
 
                       const SizedBox(height: 20),
 
-                      // Código QR
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -309,7 +297,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
                   ),
                 ),
 
-                // Línea punteada decorativa
                 Row(
                   children: List.generate(20, (index) {
                     return Expanded(
@@ -323,7 +310,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
                   }),
                 ),
 
-                // Footer del Ticket
                 const Padding(
                   padding: EdgeInsets.all(20.0),
                   child: Column(
@@ -342,7 +328,6 @@ class _ImpresionTicketScreenState extends State<ImpresionTicketScreen> {
 
           const SizedBox(height: 30),
 
-          // Botón de imprimir (Simulado por ahora)
           SizedBox(
             width: 300,
             height: 50,

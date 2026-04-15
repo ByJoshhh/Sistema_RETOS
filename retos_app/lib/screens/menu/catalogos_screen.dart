@@ -193,7 +193,6 @@ class _TabUnidadesState extends State<_TabUnidades> {
           ),
           const Divider(height: 30),
 
-          // La Tabla
           Expanded(
             child: _isLoading
                 ? const Center(

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'ticket_acarreo_screen.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class RegistroImagenesAcarreoScreen extends StatefulWidget {
   final Map<String, dynamic> datosViaje;
@@ -65,7 +66,6 @@ class _RegistroImagenesAcarreoScreenState
     setState(() => _isSubmitting = true);
 
     try {
-      // --- NUEVO: LEER EL TOKEN DE LA MEMORIA ---
       final prefs = await SharedPreferences.getInstance();
       final String? tokenSeguridad = prefs.getString('token_seguridad');
 
@@ -81,12 +81,9 @@ class _RegistroImagenesAcarreoScreenState
         return;
       }
 
-      // CONEXIÓN A LA NUBE EN RENDER
-      final String ipServidor = 'https://api-retos.onrender.com';
-      final url = Uri.parse('$ipServidor/api/acarreos');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/acarreos');
 
-      // --- MODIFICADO: Solo enviamos datos de la operación.
-      // Ya NO enviamos id_empresa ni id_checador_obra. ---
       final bodyData = json.encode({
         "folio_suministro": widget.datosViaje['folio_suministro'],
         "distancia_km": widget.distanciaKm,
@@ -97,8 +94,7 @@ class _RegistroImagenesAcarreoScreenState
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization':
-              'Bearer $tokenSeguridad', // <-- NUEVO: Enviamos el token al guardia
+          'Authorization': 'Bearer $tokenSeguridad',
         },
         body: bodyData,
       );

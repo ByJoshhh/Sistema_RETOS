@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart'; // <-- 1. Importamos SharedPreferences
+import 'package:shared_preferences/shared_preferences.dart';
 import 'registro_exitoso_screen.dart';
+import '../../config.dart'; // <-- 1. Importamos el switch maestro
 
 class RegistroImagenesScreen extends StatefulWidget {
   final int idBanco;
@@ -65,13 +66,10 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      // --- 1. LEEMOS LA MEMORIA DEL CELULAR Y EL TOKEN ---
       final prefs = await SharedPreferences.getInstance();
       final int idChecadorReal = prefs.getInt('id_usuario') ?? 1;
       final int idEmpresaReal = prefs.getInt('id_empresa') ?? 1;
-      final String? token = prefs.getString(
-        'token_seguridad',
-      ); // <-- EL GAFETE VIP
+      final String? token = prefs.getString('token_seguridad');
 
       if (token == null) {
         _mostrarAlerta('Sesión expirada. Vuelve a iniciar sesión.', Colors.red);
@@ -79,13 +77,9 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
         return;
       }
 
-      // --- 2. APUNTAMOS A LA URL CORRECTA (Local o Render) ---
-      final String baseUrl = kIsWeb
-          ? 'http://localhost:3000'
-          : 'https://api-retos.onrender.com';
-      final url = Uri.parse('$baseUrl/api/suministros');
+      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
+      final url = Uri.parse('${Config.apiUrl}/api/suministros');
 
-      // --- 3. EMPAQUETAMOS LOS DATOS ---
       final bodyData = json.encode({
         "id_checador": idChecadorReal,
         "id_banco": widget.idBanco,
@@ -98,12 +92,11 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
         "id_sindicato": widget.idSindicato,
       });
 
-      // --- 4. MANDAMOS LA PETICIÓN CON EL TOKEN ---
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token', // <-- ¡AQUÍ ESTÁ LA MAGIA!
+          'Authorization': 'Bearer $token',
         },
         body: bodyData,
       );
@@ -145,7 +138,6 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
     );
   }
 
-  // Diseño Premium para los visores de fotos
   Widget _visorDeFoto(
     XFile? foto,
     String titulo,
@@ -247,7 +239,7 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Fondo claro para resaltar tarjetas
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
           'Evidencia Fotográfica',
@@ -281,7 +273,6 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Chip indicador de paso
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -331,7 +322,6 @@ class _RegistroImagenesScreenState extends State<RegistroImagenesScreen> {
               ),
               const SizedBox(height: 40),
 
-              // Botón Guardar
               Container(
                 width: double.infinity,
                 height: 60,
