@@ -1,8 +1,8 @@
-// controllers/catalogosController.js
 const dbPool = require('../config/database');
 
 const obtenerCatalogos = async (req, res) => {
-    const id_empresa = req.query.id_empresa || 1;
+    // Seguridad SaaS: Extraemos del token, ya no confiamos en req.query
+    const id_empresa = req.usuarioSeguro.id_empresa;
 
     try {
         const [bancos] = await dbPool.query('SELECT id_banco, nombre_banco FROM cat_bancos WHERE estatus_activo = 1 AND id_empresa = ?', [id_empresa]);
@@ -22,4 +22,30 @@ const obtenerCatalogos = async (req, res) => {
     }
 };
 
-module.exports = { obtenerCatalogos };
+// --- NUEVA FUNCIÓN PARA LA TABLA WEB ---
+const obtenerUnidades = async (req, res) => {
+    const id_empresa = req.usuarioSeguro.id_empresa;
+
+    try {
+        // Adaptado a tu BD: Solo pedimos id_unidad, placas_o_num y capacidad_m3
+        const [unidades] = await dbPool.query(`
+            SELECT 
+                id_unidad, 
+                placas_o_num AS placa, 
+                capacidad_m3 
+            FROM cat_unidades 
+            WHERE estatus_activo = 1 AND id_empresa = ?
+            ORDER BY id_unidad DESC
+        `, [id_empresa]);
+
+        res.json({
+            exito: true,
+            datos: unidades
+        });
+    } catch (error) {
+        console.error('Error al obtener la tabla de unidades:', error);
+        res.status(500).json({ exito: false, mensaje: 'Error al cargar las unidades' });
+    }
+};
+
+module.exports = { obtenerCatalogos, obtenerUnidades };

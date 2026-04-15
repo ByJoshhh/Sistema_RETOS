@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -21,6 +22,7 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
   }
 
   // --- GET: Traer todos los viajes de Node.js ---
+  // --- GET: Traer todos los viajes de Node.js protegidos con Token ---
   Future<void> _cargarHistorial() async {
     setState(() {
       _isLoading = true;
@@ -28,10 +30,31 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
     });
 
     try {
+      // 1. Buscamos el Gafete (Token) en la memoria del celular
+      final prefs = await SharedPreferences.getInstance();
+      final String? tokenSeguridad = prefs.getString('token_seguridad');
+
+      if (tokenSeguridad == null) {
+        setState(() {
+          _errorMessage =
+              'Sesión expirada o no válida. Vuelve a iniciar sesión.';
+          _isLoading = false;
+        });
+        return;
+      }
+
       final String ipServidor = 'https://api-retos.onrender.com';
       final url = Uri.parse('$ipServidor/api/suministros');
 
-      final response = await http.get(url);
+      // 2. Tocamos la puerta enviando el Token en los Headers
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $tokenSeguridad', // <-- El pase VIP
+        },
+      );
+
       final data = json.decode(response.body);
 
       if (response.statusCode == 200 && data['exito'] == true) {
@@ -47,8 +70,7 @@ class _ConsultaScreenState extends State<ConsultaScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage =
-            'Error de conexión con el servidor. Verifica que Node.js esté encendido.';
+        _errorMessage = 'Error de conexión con el servidor.';
         _isLoading = false;
       });
     }

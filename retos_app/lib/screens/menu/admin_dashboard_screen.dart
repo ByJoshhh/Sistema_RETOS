@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import '../auth/login_screen.dart';
 import 'admin_ui_components.dart';
 import 'historial_viajes_screen.dart';
-import 'grafica_viajes_widget.dart'; // <-- IMPORTANTE: El archivo que creamos para la gráfica
+import 'grafica_viajes_widget.dart';
+import 'catalogos_screen.dart'; // <-- IMPORTANTE: Asegúrate de haber creado este archivo
 
 class AdminDashboardScreen extends StatefulWidget {
   final String nombre;
@@ -295,12 +296,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 2:
         return const HistorialViajesScreen();
       case 3:
-        return const Center(
-          child: Text(
-            'Gestión de Catálogos (Próximamente)',
-            style: TextStyle(fontSize: 20, color: Colors.grey),
-          ),
-        );
+        return const CatalogosScreen(); // <-- ¡AQUÍ ESTÁ LA MAGIA!
       default:
         return const Center(child: Text('Módulo en construcción'));
     }
@@ -375,7 +371,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         Expanded(
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(25), // Agregamos un poco de aire
+            padding: const EdgeInsets.all(25),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -387,7 +383,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
               ],
             ),
-            // --- AQUÍ INSERTAMOS LA GRÁFICA REAL ---
             child: const GraficaViajesSemanal(),
           ),
         ),
