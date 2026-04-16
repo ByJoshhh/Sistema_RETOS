@@ -59,7 +59,6 @@ class _SuministroScreenState extends State<SuministroScreen> {
         return;
       }
 
-      // --- 2. USAMOS EL ARCHIVO MAESTRO ---
       final url = Uri.parse('${Config.apiUrl}/api/catalogos');
 
       final response = await http.get(
@@ -148,21 +147,39 @@ class _SuministroScreenState extends State<SuministroScreen> {
         backgroundColor: const Color(0xFF1C2229),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
+        elevation: 0,
       ),
       body: _isLoadingCatalogos
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF4A5D6A)),
             )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  _buildHeaderCard(),
-                  const SizedBox(height: 25),
-                  _buildFormCard(),
-                  const SizedBox(height: 30),
-                  _buildSubmitButton(),
-                ],
+          // --- ANIMACIÓN DE ENTRADA SUAVE ---
+          : TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, double value, child) {
+                return Opacity(
+                  opacity: value,
+                  child: Transform.translate(
+                    offset: Offset(0, 30 * (1 - value)),
+                    child: child,
+                  ),
+                );
+              },
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  children: [
+                    _buildHeaderCard(),
+                    const SizedBox(height: 25),
+                    _buildFormCard(),
+                    const SizedBox(height: 35),
+                    _buildSubmitButton(),
+                    const SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
     );
@@ -174,8 +191,17 @@ class _SuministroScreenState extends State<SuministroScreen> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF2C3E50), Color(0xFF4A5D6A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blueGrey.withOpacity(0.2),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -194,11 +220,19 @@ class _SuministroScreenState extends State<SuministroScreen> {
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
+                  letterSpacing: 1,
                 ),
               ),
             ],
           ),
-          const Icon(Icons.location_on, color: Colors.white),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.location_on, color: Colors.white),
+          ),
         ],
       ),
     );
@@ -206,27 +240,56 @@ class _SuministroScreenState extends State<SuministroScreen> {
 
   Widget _buildFormCard() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Detalles del Viaje',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1C2229),
+            ),
+          ),
+          const SizedBox(height: 5),
+          const Text(
+            'Complete todos los campos para continuar.',
+            style: TextStyle(fontSize: 13, color: Colors.blueGrey),
+          ),
+          const SizedBox(height: 25),
+
           _buildInputGroup(
-            'Volumen m3',
+            'Volumen a Suministrar',
             Icons.straighten,
             TextField(
               controller: _cantidadController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Ej. 14.0',
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: _getModernInputDecoration(
+                'Ej. 14.5 m³',
+                Icons.straighten,
               ),
             ),
           ),
-          const Divider(),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Divider(color: Colors.black12, thickness: 1),
+          ),
+
           _buildDropdownGroup(
             'Banco Origen',
             Icons.landscape,
@@ -236,6 +299,8 @@ class _SuministroScreenState extends State<SuministroScreen> {
             'nombre_banco',
             (v) => setState(() => _selectedBanco = v),
           ),
+          const SizedBox(height: 20),
+
           _buildDropdownGroup(
             'Material',
             Icons.layers,
@@ -245,6 +310,8 @@ class _SuministroScreenState extends State<SuministroScreen> {
             'nombre_material',
             (v) => setState(() => _selectedMaterial = v),
           ),
+          const SizedBox(height: 20),
+
           _buildDropdownGroup(
             'Residente',
             Icons.person,
@@ -254,6 +321,8 @@ class _SuministroScreenState extends State<SuministroScreen> {
             'nombre_completo',
             (v) => setState(() => _selectedResidente = v),
           ),
+          const SizedBox(height: 20),
+
           _buildDropdownGroup(
             'Destino',
             Icons.place,
@@ -263,6 +332,8 @@ class _SuministroScreenState extends State<SuministroScreen> {
             'nombre_destino',
             (v) => setState(() => _selectedDestino = v),
           ),
+          const SizedBox(height: 20),
+
           _buildDropdownGroup(
             'Sindicato',
             Icons.group,
@@ -272,6 +343,8 @@ class _SuministroScreenState extends State<SuministroScreen> {
             'nombre_sindicato',
             (v) => setState(() => _selectedSindicato = v),
           ),
+          const SizedBox(height: 20),
+
           _buildDropdownGroup(
             'Unidad / Camión',
             Icons.local_shipping,
@@ -286,22 +359,44 @@ class _SuministroScreenState extends State<SuministroScreen> {
     );
   }
 
+  // --- DECORACIÓN MODERNA REUTILIZABLE PARA TODOS LOS INPUTS ---
+  InputDecoration _getModernInputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+      prefixIcon: Icon(icon, color: Colors.blueGrey, size: 20),
+      filled: true,
+      fillColor: Colors.grey[50],
+      contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+        borderSide: const BorderSide(color: Color(0xFF4A5D6A), width: 2),
+      ),
+    );
+  }
+
   Widget _buildInputGroup(String label, IconData icon, Widget field) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 16, color: Colors.blueGrey),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.blueGrey,
-              ),
+        Padding(
+          padding: const EdgeInsets.only(left: 5, bottom: 8),
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: Colors.blueGrey,
             ),
-          ],
+          ),
         ),
         field,
       ],
@@ -317,44 +412,73 @@ class _SuministroScreenState extends State<SuministroScreen> {
     String nameK,
     Function(int?) onCh,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: _buildInputGroup(
-        label,
-        icon,
-        DropdownButtonFormField<int>(
-          value: val,
-          isExpanded: true,
-          items: items
-              .map(
-                (i) => DropdownMenuItem<int>(
-                  value: i[idK],
-                  child: Text(i[nameK].toString()),
-                ),
-              )
-              .toList(),
-          onChanged: onCh,
-          decoration: const InputDecoration(border: InputBorder.none),
+    return _buildInputGroup(
+      label,
+      icon,
+      DropdownButtonFormField<int>(
+        value: val,
+        isExpanded: true,
+        icon: const Icon(
+          Icons.keyboard_arrow_down_rounded,
+          color: Colors.blueGrey,
         ),
+        dropdownColor: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        items: items
+            .map(
+              (i) => DropdownMenuItem<int>(
+                value: i[idK],
+                child: Text(
+                  i[nameK].toString(),
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
+            )
+            .toList(),
+        onChanged: onCh,
+        decoration: _getModernInputDecoration('Seleccionar...', icon),
       ),
     );
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      height: 55,
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.orange.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.orange[700],
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(15),
           ),
+          elevation: 0,
         ),
         onPressed: _irAPantallaFotos,
-        child: const Text(
-          'CONTINUAR A EVIDENCIA',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'CONTINUAR A EVIDENCIA',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                letterSpacing: 1,
+              ),
+            ),
+            SizedBox(width: 10),
+            Icon(Icons.arrow_forward_rounded, color: Colors.white),
+          ],
         ),
       ),
     );
