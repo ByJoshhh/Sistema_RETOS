@@ -6,7 +6,7 @@ class Config {
   // SWITCH MAESTRO
   // Ponlo en 'false' para trabajar en tu compu (Local)
   // Ponlo en 'true' ANTES de compilar para Netlify (Render)
-  static const bool esProduccion = false;
+  static const bool esProduccion = true;
 
   static String get apiUrl {
     if (esProduccion) {
