@@ -26,7 +26,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    'RETOS',
+                    'WELCOME TO SYCORE',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
@@ -71,7 +71,7 @@ class WelcomeScreen extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.only(bottom: 20.0),
                 child: Text(
-                  '© 2026 Gybsa Construcciones. Todos los derechos reservados',
+                  '© 2026 Tecnologico Superior De Poza Rica',
                   style: TextStyle(fontSize: 10, color: Colors.grey),
                 ),
               ),

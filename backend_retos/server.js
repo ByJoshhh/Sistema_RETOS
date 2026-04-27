@@ -7,7 +7,9 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const catalogosRoutes = require('./routes/catalogosRoutes'); 
 const suministrosRoutes = require('./routes/suministrosRoutes'); 
-const acarreosRoutes = require('./routes/acarreosRoutes'); // <--- AÑADE ESTO
+const acarreosRoutes = require('./routes/acarreosRoutes');
+const usuariosRoutes = require('./routes/usuariosRoutes');
+const activacionRoutes = require('./routes/activacionRoutes');
 
 const app = express();
 
@@ -19,7 +21,10 @@ app.use(express.json());
 app.use('/api', authRoutes); 
 app.use('/api', catalogosRoutes);
 app.use('/api', suministrosRoutes);
-app.use('/api', acarreosRoutes); // <--- AÑADE ESTO
+app.use('/api', acarreosRoutes);
+app.use('/api/usuarios', usuariosRoutes);
+// 👇 Aquí está la ruta pública para el SaaS
+app.use('/api/activacion', activacionRoutes); 
 
 // 4. ENCENDER EL SERVIDOR
 const PORT = process.env.PORT || 3000;

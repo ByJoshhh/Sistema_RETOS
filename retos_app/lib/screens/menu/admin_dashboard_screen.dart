@@ -3,7 +3,8 @@ import '../auth/login_screen.dart';
 import 'admin_ui_components.dart';
 import 'historial_viajes_screen.dart';
 import 'grafica_viajes_widget.dart';
-import 'catalogos_screen.dart'; // <-- IMPORTANTE: Asegúrate de haber creado este archivo
+import 'catalogos_screen.dart';
+import 'gestion_usuarios_screen.dart'; // <-- 1. NUEVA IMPORTACIÓN
 
 class AdminDashboardScreen extends StatefulWidget {
   final String nombre;
@@ -186,7 +187,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   onTap: () => _seleccionarMenu(3, esMovil),
                 ),
                 if (widget.rol.toLowerCase().contains('super') ||
-                    widget.rol.toLowerCase().contains('admin'))
+                    widget.rol.toLowerCase().contains('admin') ||
+                    widget.rol.toLowerCase().contains('residente'))
                   BotonLateralAnimado(
                     icono: Icons.manage_accounts_rounded,
                     titulo: 'Usuarios y Permisos',
@@ -296,7 +298,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 2:
         return const HistorialViajesScreen();
       case 3:
-        return const CatalogosScreen(); // <-- ¡AQUÍ ESTÁ LA MAGIA!
+        return const CatalogosScreen();
+      case 4:
+        return const GestionUsuariosScreen(); // <-- 2. ¡CONECTAMOS LA NUEVA PANTALLA!
       default:
         return const Center(child: Text('Módulo en construcción'));
     }
